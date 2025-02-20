@@ -37,7 +37,7 @@ public class Comment extends BaseEntity {
     @JoinColumn(name = "parent_comment_id")
     private Comment parentComment; // 대댓글을 위한 자기 참조
 
-    @OneToMany(mappedBy = "parentCommnet", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Comment> childComments = new ArrayList<>(); // 대댓글 목록
 
     private int likeCount;

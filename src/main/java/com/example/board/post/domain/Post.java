@@ -23,7 +23,7 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     private String content;
     @Enumerated(EnumType.STRING)
-    private String category;
+    private Category category;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -32,7 +32,7 @@ public class Post extends BaseEntity {
     private int likeCount;
 
     @Builder
-    public Post(String title, String content, String category, User user, int likeCount) {
+    public Post(String title, String content, Category category, User user, int likeCount) {
         this.title = title;
         this.content = content;
         this.category = category;
