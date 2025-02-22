@@ -26,6 +26,9 @@ public class PostLike {
     @JoinColumn(name = "post_id")
     private Post post;
 
+    @Version
+    private Long version;
+
     @Builder
     public PostLike(User user, Post post) {
         this.user = user;

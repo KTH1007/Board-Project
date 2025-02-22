@@ -31,12 +31,14 @@ public class Post extends BaseEntity {
 
     private int likeCount;
 
+    @Version
+    private Long version;
+
     @Builder
-    public Post(String title, String content, Category category, User user, int likeCount) {
+    public Post(String title, String content, Category category) {
         this.title = title;
         this.content = content;
         this.category = category;
-        this.user = user;
         this.likeCount = 0;
     }
 
@@ -50,5 +52,11 @@ public class Post extends BaseEntity {
         if (this.likeCount > 0) {
             this.likeCount--;
         }
+    }
+
+    public void updatePost(String title, String content, Category category) {
+        this.title = title;
+        this.content = content;
+        this.category = category;
     }
 }
