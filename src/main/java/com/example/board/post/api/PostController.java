@@ -90,7 +90,7 @@ public class PostController {
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/{id}/unlike")
+    @DeleteMapping("/{id}/like")
     @Operation(summary = "게시글 추천 취소", description = "게시글 id와 유저 id 값으로 게시글 추천을 취소한다.")
     @ApiResponse(responseCode = "204", description = "성공")
     @ApiResponse(responseCode = "400", description = "파라미터 오류")
