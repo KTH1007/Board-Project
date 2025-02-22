@@ -1,0 +1,20 @@
+spring:
+  profiles:
+    active: secret
+  datasource:
+    url: ${spring.datasource.url}
+    username: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+  sql:
+    init:
+      mode: always # ??????? ??? ??? schema.sql? data.sql? ?? ?
+logging:
+  level:
+    org.hibernate.SQL: debug
