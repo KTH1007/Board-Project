@@ -27,6 +27,9 @@ public class CommentLike {
     @JoinColumn(name = "comment_id")
     private Comment comment;
 
+    @Version
+    private Long version;
+
     @Builder
     public CommentLike(User user, Comment comment) {
         this.user = user;

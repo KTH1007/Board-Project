@@ -42,8 +42,11 @@ public class Comment extends BaseEntity {
 
     private int likeCount;
 
+    @Version
+    private Long version;
+
     @Builder
-    public Comment(String content, Post post, User user, Comment parentComment, int likeCount) {
+    public Comment(String content, Post post, User user, Comment parentComment) {
         this.content = content;
         this.post = post;
         this.user = user;
@@ -61,5 +64,9 @@ public class Comment extends BaseEntity {
         if (this.likeCount > 0) {
             this.likeCount--;
         }
+    }
+
+    public void updateContent(String content) {
+        this.content = content;
     }
 }
