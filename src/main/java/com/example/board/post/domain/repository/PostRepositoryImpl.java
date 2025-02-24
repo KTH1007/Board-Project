@@ -2,6 +2,7 @@ package com.example.board.post.domain.repository;
 
 import com.example.board.post.api.dto.request.SearchPostRequest;
 import com.example.board.post.api.dto.response.PostResponse;
+import com.example.board.post.domain.Post;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.example.board.post.domain.QPost.post;
 
@@ -26,24 +28,16 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     @Override
     public Page<PostResponse> searchPage(SearchPostRequest searchPostRequest, Pageable pageable) {
 
-        List<PostResponse> content = queryFactory
-                // DTO로 변환할 필드 명시
-                .select(Projections.constructor(PostResponse.class,
-                        post.id,
-                        post.title,
-                        post.content,
-                        post.category,
-                        post.likeCount,
-                        post.createdId,
-                        post.updatedId,
-                        post.createdDate,
-                        post.updatedDate
-                ))
-                .from(post)
+        List<Post> posts = queryFactory
+                .selectFrom(post)
                 .where(titleOrContentContains(searchPostRequest.title(), searchPostRequest.content()))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
+
+        List<PostResponse> content = posts.stream()
+                .map(PostResponse::toDto)
+                .collect(Collectors.toList());
 
         JPAQuery<Long> countQuery = queryFactory
                 .select(post.count())
