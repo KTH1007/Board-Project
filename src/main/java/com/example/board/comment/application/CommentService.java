@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,7 +41,7 @@ public class CommentService {
     @Transactional
     public CommentResponse createComment(Long postId, CreateCommentRequest createCommentRequest) {
         Post post = getPost(postId);
-        User user = getUser(createCommentRequest);
+        User user = getCurrentUser();
 
         Comment parentComment = null;
         log.info("request -> {}", createCommentRequest.parentCommentId());
@@ -129,8 +130,9 @@ public class CommentService {
         return commentRepository.findById(createCommentRequest.parentCommentId()).orElseThrow(ParentCommentNotFoundException::new);
     }
 
-    private User getUser(CreateCommentRequest createCommentRequest) {
-        return userRepository.findById(createCommentRequest.userId()).orElseThrow(NotFoundUserException::new);
+    private User getCurrentUser() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(username).orElseThrow(NotFoundUserException::new);
     }
 
     private Post getPost(Long postId) {
