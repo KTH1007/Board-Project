@@ -35,11 +35,12 @@ public class Post extends BaseEntity {
     private Long version;
 
     @Builder
-    public Post(String title, String content, Category category) {
+    public Post(String title, String content, Category category, User user) {
         this.title = title;
         this.content = content;
         this.category = category;
         this.likeCount = 0;
+        this.user = user;
     }
 
     // 추천 수 증가 메서드
