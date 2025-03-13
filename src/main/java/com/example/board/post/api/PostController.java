@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,6 +32,7 @@ public class PostController {
     @Operation(summary = "게시글 작성", description = "파라미터로 넘어온 값으로 게시글을 작성한다.")
     @ApiResponse(responseCode = "201", description = "성공")
     @ApiResponse(responseCode = "400", description = "파라미터 오류")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<PostResponse> createPost(@Parameter(description = "게시글 제목, 내용, 카테고리") @RequestBody @Valid CreatePostRequest createPostRequest) {
         PostResponse postResponse = postService.createPost(createPostRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(postResponse);
@@ -66,6 +68,7 @@ public class PostController {
     @Operation(summary = "게시글 수정", description = "파리미터로 넘어온 id값과 정보로 게시글을 수정한다.")
     @ApiResponse(responseCode = "200", description = "성공")
     @ApiResponse(responseCode = "400", description = "파라미터 오류")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<PostResponse> updatePost(@Parameter(description = "게시글 id") @PathVariable Long id,
                                                    @Parameter(description = "게시글 제목, 내용, 카테고리") @RequestBody @Valid UpdatePostRequest updatePost) {
         PostResponse postResponse = postService.updatePost(id, updatePost);
@@ -76,6 +79,7 @@ public class PostController {
     @Operation(summary = "게시글 삭제", description = "파라미터의 id값으로 하나의 게시글을 삭제한다.")
     @ApiResponse(responseCode = "204", description = "성공")
     @ApiResponse(responseCode = "400", description = "파라미터 오류")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<Void> deletePost(@Parameter(description = "게시글 id") @PathVariable Long id) {
         postService.deletePost(id);
         return ResponseEntity.noContent().build();
@@ -85,6 +89,7 @@ public class PostController {
     @Operation(summary = "게시글 추천", description = "게시글 id와 유저 id 값으로 게시글을 추천한다.")
     @ApiResponse(responseCode = "200", description = "성공")
     @ApiResponse(responseCode = "400", description = "파라미터 오류")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<Void> likePost(@Parameter(description = "게시글 id") @PathVariable Long id, @Parameter(description = "유저 id") @RequestParam Long userId) {
         postLikeService.likePost(userId, id);
         return ResponseEntity.ok().build();
@@ -94,6 +99,7 @@ public class PostController {
     @Operation(summary = "게시글 추천 취소", description = "게시글 id와 유저 id 값으로 게시글 추천을 취소한다.")
     @ApiResponse(responseCode = "204", description = "성공")
     @ApiResponse(responseCode = "400", description = "파라미터 오류")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<Void> unlikePost(@Parameter(description = "게시글 id") @PathVariable Long id, @Parameter(description = "유저 id") @RequestParam Long userId) {
         postLikeService.unlikePost(userId, id);
         return ResponseEntity.ok().build();

@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -83,6 +84,7 @@ public class AuthController {
     @Operation(summary = "토큰 재발급", description = "파라미터로 넘어온 RefreshToken으로 AccessToken을 발급받는다.")
     @ApiResponse(responseCode = "200", description = "성공")
     @ApiResponse(responseCode = "400", description = "파라미터 오류")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<LoginResponse> reissueAccessToken(@RequestBody @Valid ReissueRequest reissueRequest) {
         String newAccessToken = refreshTokenService.reissueAccessToken(reissueRequest.refreshToken());
         return ResponseEntity.ok(new LoginResponse(newAccessToken, reissueRequest.refreshToken()));
@@ -91,6 +93,7 @@ public class AuthController {
     @PostMapping("/logout")
     @Operation(summary = "로그아웃", description = "로그아웃을 한다.")
     @ApiResponse(responseCode = "200", description = "성공")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<String> logout(@RequestHeader("Authorization") String refreshToken) {
         refreshToken = refreshToken.substring(7); // "Bearer" 제거
 
