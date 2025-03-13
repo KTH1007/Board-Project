@@ -1,8 +1,6 @@
 package com.example.board.user.api;
 
-import com.example.board.user.api.dto.request.SignUpRequest;
 import com.example.board.user.api.dto.request.UpdateUserRequest;
-import com.example.board.user.api.dto.response.SignUpResponse;
 import com.example.board.user.api.dto.response.UpdateUserResponse;
 import com.example.board.user.application.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,9 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,22 +17,6 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
-    private final AuthenticationManager authenticationManager;
-
-    @PostMapping("/signup")
-    @Operation(summary = "회원가입", description = "파라미터로 넘어온 정보로 회원가입")
-    @ApiResponse(responseCode = "201", description = "회원가입")
-    @ApiResponse(responseCode = "400", description = "파리미터 오류")
-    @ApiResponse(responseCode = "409", description = "데이터 중복")
-    public ResponseEntity<SignUpResponse> signup(@RequestBody @Valid SignUpRequest signUpRequest) {
-        SignUpResponse signUpResponse = userService.signUp(signUpRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(signUpResponse);
-    }
-
-    @GetMapping("")
-    public String login() {
-        return "로그인";
-    }
 
     @PatchMapping("/user/{id}")
     @Operation(summary = "회원 정보 수정", description = "사용자의 비밀번호나 닉네임을 수정한다.")
@@ -44,7 +24,7 @@ public class UserController {
     @ApiResponse(responseCode = "400", description = "파라미터 오류")
     @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     public ResponseEntity<UpdateUserResponse> updateUser(@PathVariable Long id, @RequestBody @Valid UpdateUserRequest updateUserRequest) {
-        UpdateUserResponse updateUserResponse= userService.updateUser(id, updateUserRequest);
+        UpdateUserResponse updateUserResponse = userService.updateUser(id, updateUserRequest);
         return ResponseEntity.ok().body(updateUserResponse);
     }
 

@@ -1,4 +1,4 @@
-package com.example.board.user.api.dto.request;
+package com.example.board.global.auth.api.dto.request;
 
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;

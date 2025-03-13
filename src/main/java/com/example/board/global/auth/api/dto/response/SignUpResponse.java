@@ -1,4 +1,4 @@
-package com.example.board.user.api.dto.response;
+package com.example.board.global.auth.api.dto.response;
 
 import com.example.board.user.domain.User;
 import lombok.Builder;
