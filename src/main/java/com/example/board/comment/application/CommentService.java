@@ -39,9 +39,9 @@ public class CommentService {
     private final CommentRepositoryCustom commentRepositoryCustom;
 
     @Transactional
-    public CommentResponse createComment(Long postId, CreateCommentRequest createCommentRequest) {
+    public CommentResponse createComment(Long postId, CreateCommentRequest createCommentRequest, Long userId) {
         Post post = getPost(postId);
-        User user = getCurrentUser();
+        User user = getCurrentUser(userId);
 
         Comment parentComment = null;
         log.info("request -> {}", createCommentRequest.parentCommentId());
@@ -94,11 +94,14 @@ public class CommentService {
     }
 
     @Transactional
-    public CommentResponse updateComment(Long postId, Long commentId, UpdateCommentRequest updateCommentRequest) {
+    public CommentResponse updateComment(Long postId, Long commentId, UpdateCommentRequest updateCommentRequest, Long userId) {
         Comment comment = getComment(commentId);
 
         // 댓글이 해당 게시글에 속하는지 확인
         commentContainsPost(postId, comment);
+
+        // 작성자와 로그인한 사용자가 일치하는지 확인
+        currentUserCheck(comment, userId);
 
         comment.updateContent(updateCommentRequest.content());
         commentRepository.save(comment);
@@ -106,11 +109,14 @@ public class CommentService {
     }
 
     @Transactional
-    public void deleteComment(Long postId, Long commentId) {
+    public void deleteComment(Long postId, Long commentId, Long userId) {
         Comment comment = getComment(commentId);
 
         // 댓글이 해당 게시글에 속하는지 확인
         commentContainsPost(postId, comment);
+
+        // 작성자와 로그인한 사용자가 일치하는지 확인
+        currentUserCheck(comment, userId);
 
         commentRepository.delete(comment);
     }
@@ -130,12 +136,17 @@ public class CommentService {
         return commentRepository.findById(createCommentRequest.parentCommentId()).orElseThrow(ParentCommentNotFoundException::new);
     }
 
-    private User getCurrentUser() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByEmail(username).orElseThrow(NotFoundUserException::new);
+    private User getCurrentUser(Long userId) {
+        return userRepository.findById(userId).orElseThrow(NotFoundUserException::new);
     }
 
     private Post getPost(Long postId) {
         return postRepository.findById(postId).orElseThrow(NotFoundPostException::new);
+    }
+
+    private static void currentUserCheck(Comment comment, Long currentUserId) {
+        if (!comment.getUser().getId().equals(currentUserId)) {
+            throw new RuntimeException("작성자만 수정할 수 있습니다.");
+        }
     }
 }

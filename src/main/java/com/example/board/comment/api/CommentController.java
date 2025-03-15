@@ -4,6 +4,7 @@ import com.example.board.comment.api.dto.request.CreateCommentRequest;
 import com.example.board.comment.api.dto.request.UpdateCommentRequest;
 import com.example.board.comment.api.dto.response.CommentResponse;
 import com.example.board.comment.application.CommentService;
+import com.example.board.global.security.CustomUserDetails;
 import com.example.board.like.application.CommentLikeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,8 +18,10 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @RestController
@@ -35,8 +38,10 @@ public class CommentController {
     @ApiResponse(responseCode = "400", description = "파라미터 오류")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<CommentResponse> createComment(@Parameter(description = "게시글 id") @PathVariable Long postId,
-                                                         @Parameter(description = "댓글 내용") @RequestBody @Valid CreateCommentRequest createCommentRequest) {
-        CommentResponse commentResponse = commentService.createComment(postId, createCommentRequest);
+                                                         @Parameter(description = "댓글 내용") @RequestBody @Valid CreateCommentRequest createCommentRequest,
+                                                         Authentication authentication) throws AccessDeniedException {
+        Long userId = getCurrentUserId(authentication);
+        CommentResponse commentResponse = commentService.createComment(postId, createCommentRequest, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(commentResponse);
     }
 
@@ -65,8 +70,10 @@ public class CommentController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<CommentResponse> updateComment(@Parameter(description = "게시글 id") @PathVariable Long postId,
                                                          @Parameter(description = "댓글 id") @PathVariable Long commentId,
-                                                         @Parameter(description = "댓글 내용") @RequestBody @Valid UpdateCommentRequest updateCommentRequest) {
-        CommentResponse commentResponse = commentService.updateComment(postId, commentId, updateCommentRequest);
+                                                         @Parameter(description = "댓글 내용") @RequestBody @Valid UpdateCommentRequest updateCommentRequest,
+                                                         Authentication authentication) throws AccessDeniedException {
+        Long userId = getCurrentUserId(authentication);
+        CommentResponse commentResponse = commentService.updateComment(postId, commentId, updateCommentRequest, userId);
         return ResponseEntity.ok(commentResponse);
     }
 
@@ -76,8 +83,10 @@ public class CommentController {
     @ApiResponse(responseCode = "400", description = "파라미터 오류")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<Void> deleteComment(@Parameter(description = "게시글 id") @PathVariable Long postId,
-                                              @Parameter(description = "댓글 id") @PathVariable Long commentId) {
-        commentService.deleteComment(postId, commentId);
+                                              @Parameter(description = "댓글 id") @PathVariable Long commentId,
+                                              Authentication authentication) throws AccessDeniedException {
+        Long userId = getCurrentUserId(authentication);
+        commentService.deleteComment(postId, commentId, userId);
         return ResponseEntity.noContent().build();
     }
 
@@ -88,7 +97,8 @@ public class CommentController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<Void> likeComment(@Parameter(description = "게시글 id") @PathVariable Long postId,
                                             @Parameter(description = "댓글 id") @PathVariable Long commentId,
-                                            @Parameter(description = "유저 id") @RequestParam Long userId) {
+                                            Authentication authentication) throws AccessDeniedException {
+        Long userId = getCurrentUserId(authentication);
         commentLikeService.likeComment(postId, userId, commentId);
         return ResponseEntity.ok().build();
     }
@@ -100,8 +110,17 @@ public class CommentController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<Void> unlikeComment(@Parameter(description = "게시글 id") @PathVariable Long postId,
                                               @Parameter(description = "댓글 id") @PathVariable Long commentId,
-                                              @Parameter(description = "유저 id") @RequestParam Long userId) {
+                                              Authentication authentication) throws AccessDeniedException {
+        Long userId = getCurrentUserId(authentication);
         commentLikeService.unlikeComment(postId, userId, commentId);
         return ResponseEntity.ok().build();
+    }
+
+    // 로그인한 사용자 ID 가져오기
+    private Long getCurrentUserId(Authentication authentication) throws AccessDeniedException {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AccessDeniedException("인증 정보가 없습니다.");
+        }
+        return ((CustomUserDetails) authentication.getPrincipal()).getUserId();
     }
 }

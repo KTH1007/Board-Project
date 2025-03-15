@@ -1,5 +1,6 @@
 package com.example.board.post.api;
 
+import com.example.board.global.security.CustomUserDetails;
 import com.example.board.like.application.PostLikeService;
 import com.example.board.post.api.dto.request.CreatePostRequest;
 import com.example.board.post.api.dto.request.SearchPostRequest;
@@ -16,8 +17,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @RestController
@@ -33,8 +36,10 @@ public class PostController {
     @ApiResponse(responseCode = "201", description = "성공")
     @ApiResponse(responseCode = "400", description = "파라미터 오류")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<PostResponse> createPost(@Parameter(description = "게시글 제목, 내용, 카테고리") @RequestBody @Valid CreatePostRequest createPostRequest) {
-        PostResponse postResponse = postService.createPost(createPostRequest);
+    public ResponseEntity<PostResponse> createPost(@Parameter(description = "게시글 제목, 내용, 카테고리") @RequestBody @Valid CreatePostRequest createPostRequest,
+                                                   Authentication authentication) throws AccessDeniedException {
+        Long userId = getCurrentUserId(authentication);
+        PostResponse postResponse = postService.createPost(createPostRequest, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(postResponse);
     }
 
@@ -70,8 +75,10 @@ public class PostController {
     @ApiResponse(responseCode = "400", description = "파라미터 오류")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<PostResponse> updatePost(@Parameter(description = "게시글 id") @PathVariable Long id,
-                                                   @Parameter(description = "게시글 제목, 내용, 카테고리") @RequestBody @Valid UpdatePostRequest updatePost) {
-        PostResponse postResponse = postService.updatePost(id, updatePost);
+                                                   @Parameter(description = "게시글 제목, 내용, 카테고리") @RequestBody @Valid UpdatePostRequest updatePost,
+                                                   Authentication authentication) throws AccessDeniedException {
+        Long currentUserId = getCurrentUserId(authentication);
+        PostResponse postResponse = postService.updatePost(id, updatePost, currentUserId);
         return ResponseEntity.ok(postResponse);
     }
 
@@ -80,8 +87,9 @@ public class PostController {
     @ApiResponse(responseCode = "204", description = "성공")
     @ApiResponse(responseCode = "400", description = "파라미터 오류")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<Void> deletePost(@Parameter(description = "게시글 id") @PathVariable Long id) {
-        postService.deletePost(id);
+    public ResponseEntity<Void> deletePost(@Parameter(description = "게시글 id") @PathVariable Long id, Authentication authentication) throws AccessDeniedException {
+        Long currentUserId = getCurrentUserId(authentication);
+        postService.deletePost(id, currentUserId);
         return ResponseEntity.noContent().build();
     }
 
@@ -90,7 +98,8 @@ public class PostController {
     @ApiResponse(responseCode = "200", description = "성공")
     @ApiResponse(responseCode = "400", description = "파라미터 오류")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<Void> likePost(@Parameter(description = "게시글 id") @PathVariable Long id, @Parameter(description = "유저 id") @RequestParam Long userId) {
+    public ResponseEntity<Void> likePost(@Parameter(description = "게시글 id") @PathVariable Long id, Authentication authentication) throws AccessDeniedException {
+        Long userId = getCurrentUserId(authentication);
         postLikeService.likePost(userId, id);
         return ResponseEntity.ok().build();
     }
@@ -100,8 +109,17 @@ public class PostController {
     @ApiResponse(responseCode = "204", description = "성공")
     @ApiResponse(responseCode = "400", description = "파라미터 오류")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<Void> unlikePost(@Parameter(description = "게시글 id") @PathVariable Long id, @Parameter(description = "유저 id") @RequestParam Long userId) {
+    public ResponseEntity<Void> unlikePost(@Parameter(description = "게시글 id") @PathVariable Long id, Authentication authentication) throws AccessDeniedException {
+        Long userId = getCurrentUserId(authentication);
         postLikeService.unlikePost(userId, id);
         return ResponseEntity.ok().build();
+    }
+
+    // 로그인한 사용자 ID 가져오기
+    private Long getCurrentUserId(Authentication authentication) throws AccessDeniedException {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AccessDeniedException("인증 정보가 없습니다.");
+        }
+        return ((CustomUserDetails) authentication.getPrincipal()).getUserId();
     }
 }
