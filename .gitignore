@@ -37,4 +37,4 @@ out/
 .vscode/
 
 ### JWT Secret ###
-/src/main/resources/application-jwt.yml
+/src/main/resources/application-secret.yml
