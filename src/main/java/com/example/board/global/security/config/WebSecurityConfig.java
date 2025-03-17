@@ -2,6 +2,8 @@ package com.example.board.global.security.config;
 
 import com.example.board.global.jwt.JwtAuthenticationFilter;
 import com.example.board.global.jwt.TokenProvider;
+import com.example.board.global.oauth2.CustomOAuth2SuccessHandler;
+import com.example.board.global.oauth2.CustomOAuth2UserService;
 import com.example.board.global.security.UserDetailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -25,6 +27,8 @@ public class WebSecurityConfig {
     private final EncoderConfig encoderConfig;
     private final TokenProvider tokenProvider;
     private final UserDetailService userDetailService;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -46,6 +50,10 @@ public class WebSecurityConfig {
                 .addFilterBefore(new JwtAuthenticationFilter(tokenProvider, userDetailService), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exception -> exception
                         .accessDeniedPage("/login")) // 인가되지 않은 페이지 접속 시 리다이렉트
+                .oauth2Login(oauth -> oauth
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService))
+                        .successHandler(customOAuth2SuccessHandler))
                 .logout(logout -> logout.disable()) // 기본 로그아웃 비활성화 (직접 로그아웃 구현 시 충돌)
 //                .logout(logout -> logout
 //                        .logoutSuccessUrl("/login")
